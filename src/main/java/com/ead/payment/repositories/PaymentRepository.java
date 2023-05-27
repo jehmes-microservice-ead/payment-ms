@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface PaymentRepository extends JpaRepository<PaymentModel, UUID>, JpaSpecificationExecutor<PaymentModel> {
-//    Optional<PaymentModel> findTopByUserOrderByPaymentRequestDateDesc(UserModel userModel);
+    Optional<PaymentModel> findTopByUserOrderByPaymentRequestDateDesc(UserModel userModel);
 //
 //    @Query(value = "select * from tb_payments where user_user_id = :userId and payment_id = :paymentId", nativeQuery = true)
 //    Optional<PaymentModel> findPaymentByUser(@Param("userId") UUID userId, @Param("paymentId") UUID paymentId);
