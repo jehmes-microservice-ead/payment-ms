@@ -93,16 +93,16 @@ public class PaymentServiceImpl implements PaymentService {
     public Optional<PaymentModel> findLastPaymentByUser(UserModel userModel) {
         return paymentRepository.findTopByUserOrderByPaymentRequestDateDesc(userModel);
     }
-//
-//    @Override
-//    public Page<PaymentModel> findAllByUser(Specification<PaymentModel> spec, Pageable pageable) {
-//        return paymentRepository.findAll(spec, pageable);
-//    }
-//
-//    @Override
-//    public Optional<PaymentModel> findPaymentByUser(UUID userId, UUID paymentId) {
-//        return paymentRepository.findPaymentByUser(userId, paymentId);
-//    }
+
+    @Override
+    public Page<PaymentModel> findAllByUser(Specification<PaymentModel> spec, Pageable pageable) {
+        return paymentRepository.findAll(spec, pageable);
+    }
+
+    @Override
+    public Optional<PaymentModel> findPaymentByUser(UUID userId, UUID paymentId) {
+        return paymentRepository.findPaymentByUser(userId, paymentId);
+    }
 
 //    @Transactional
 //    @Override

@@ -15,7 +15,7 @@ import java.util.UUID;
 public interface PaymentService {
     PaymentModel requestPayment(PaymentRequestDto paymentRequestDto, UserModel userModel);
     Optional<PaymentModel> findLastPaymentByUser(UserModel userModel);
-//    Page<PaymentModel> findAllByUser(Specification<PaymentModel> spec, Pageable pageable);
-//    Optional<PaymentModel> findPaymentByUser(UUID userId, UUID paymentId);
+    Page<PaymentModel> findAllByUser(Specification<PaymentModel> spec, Pageable pageable);
+    Optional<PaymentModel> findPaymentByUser(UUID userId, UUID paymentId);
 //    void makePayment(PaymentCommandDto paymentCommandDto);
 }
