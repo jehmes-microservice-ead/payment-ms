@@ -1,0 +1,36 @@
+package com.ead.payment.services.impl;
+
+import com.ead.payment.models.UserModel;
+import com.ead.payment.repositories.UserRepository;
+import com.ead.payment.services.UserService;
+import org.springframework.stereotype.Service;
+
+import javax.transaction.Transactional;
+import java.util.Optional;
+import java.util.UUID;
+
+@Service
+public class UserServiceImpl implements UserService {
+
+    private final UserRepository userRepository;
+
+    public UserServiceImpl(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    @Override
+    public UserModel save(UserModel userModel) {
+        return userRepository.save(userModel);
+    }
+
+    @Transactional
+    @Override
+    public void delete(UUID userId) {
+        userRepository.deleteById(userId);
+    }
+
+    @Override
+    public Optional<UserModel> findById(UUID userId) {
+        return userRepository.findById(userId);
+    }
+}
