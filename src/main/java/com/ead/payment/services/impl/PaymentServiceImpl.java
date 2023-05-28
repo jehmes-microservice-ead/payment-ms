@@ -12,6 +12,7 @@ import com.ead.payment.models.UserModel;
 //import com.ead.payment.publishers.PaymentCommandPublisher;
 //import com.ead.payment.publishers.PaymentEventPublisher;
 import com.ead.payment.publishers.PaymentCommandPublisher;
+import com.ead.payment.publishers.PaymentEventPublisher;
 import com.ead.payment.repositories.CreditCardRepository;
 import com.ead.payment.repositories.PaymentRepository;
 import com.ead.payment.repositories.UserRepository;
@@ -48,17 +49,17 @@ public class PaymentServiceImpl implements PaymentService {
 
    private final PaymentStripeService paymentStripeService;
 
-    public PaymentServiceImpl(CreditCardRepository creditCardRepository, PaymentRepository paymentRepository, UserRepository userRepository, PaymentCommandPublisher paymentCommandPublisher, PaymentStripeService paymentStripeService) {
+   private final PaymentEventPublisher paymentEventPublisher;
+
+    public PaymentServiceImpl(CreditCardRepository creditCardRepository, PaymentRepository paymentRepository, UserRepository userRepository, PaymentCommandPublisher paymentCommandPublisher, PaymentStripeService paymentStripeService, PaymentEventPublisher paymentEventPublisher) {
         this.creditCardRepository = creditCardRepository;
         this.paymentRepository = paymentRepository;
         this.userRepository = userRepository;
         this.paymentCommandPublisher = paymentCommandPublisher;
         this.paymentStripeService = paymentStripeService;
+        this.paymentEventPublisher = paymentEventPublisher;
     }
 
-//
-//    @Autowired
-//    PaymentEventPublisher paymentEventPublisher;
 
     @Transactional
     @Override
@@ -131,11 +132,11 @@ public class PaymentServiceImpl implements PaymentService {
         }
         userRepository.save(userModel);
 
-//        if(paymentModel.getPaymentControl().equals(PaymentControl.EFFECTED) ||
-//                paymentModel.getPaymentControl().equals(PaymentControl.REFUSED)){
-////            paymentEventPublisher.publishPaymentEvent(paymentModel.convertToPaymentEventDto());
-//        } else if(paymentModel.getPaymentControl().equals(PaymentControl.ERROR)) {
-//            //retry process and limits retry
-//        }
+        if(paymentModel.getPaymentControl().equals(PaymentControl.EFFECTED) ||
+                paymentModel.getPaymentControl().equals(PaymentControl.REFUSED)){
+            paymentEventPublisher.publishPaymentEvent(paymentModel.convertToPaymentEventDto());
+        } else if(paymentModel.getPaymentControl().equals(PaymentControl.ERROR)) {
+            //retry process and limits retry
+        }
     }
 }
