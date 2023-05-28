@@ -2,6 +2,7 @@ package com.ead.payment.services.impl;
 
 //import com.ead.payment.dtos.PaymentCommandDto;
 //import com.ead.payment.dtos.PaymentRequestDto;
+import com.ead.payment.dtos.PaymentCommandDto;
 import com.ead.payment.dtos.PaymentRequestDto;
 import com.ead.payment.enums.PaymentControl;
 import com.ead.payment.models.CreditCardModel;
@@ -9,6 +10,7 @@ import com.ead.payment.models.PaymentModel;
 import com.ead.payment.models.UserModel;
 //import com.ead.payment.publishers.PaymentCommandPublisher;
 //import com.ead.payment.publishers.PaymentEventPublisher;
+import com.ead.payment.publishers.PaymentCommandPublisher;
 import com.ead.payment.repositories.CreditCardRepository;
 import com.ead.payment.repositories.PaymentRepository;
 import com.ead.payment.repositories.UserRepository;
@@ -40,15 +42,15 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final UserRepository userRepository;
 
-    public PaymentServiceImpl(CreditCardRepository creditCardRepository, PaymentRepository paymentRepository, UserRepository userRepository) {
+    private final PaymentCommandPublisher paymentCommandPublisher;
+
+    public PaymentServiceImpl(CreditCardRepository creditCardRepository, PaymentRepository paymentRepository, UserRepository userRepository, PaymentCommandPublisher paymentCommandPublisher) {
         this.creditCardRepository = creditCardRepository;
         this.paymentRepository = paymentRepository;
         this.userRepository = userRepository;
+        this.paymentCommandPublisher = paymentCommandPublisher;
     }
 
-//    @Autowired
-//    PaymentCommandPublisher paymentCommandPublisher;
-//
 //    @Autowired
 //    PaymentStripeService paymentStripeService;
 //
@@ -76,16 +78,16 @@ public class PaymentServiceImpl implements PaymentService {
         paymentModel.setValuePaid(paymentRequestDto.getValuePaid());
         paymentModel.setUser(userModel);
         paymentRepository.save(paymentModel);
-//
-//        try {
-//            var paymentCommandDto = new PaymentCommandDto();
-//            paymentCommandDto.setUserId(userModel.getUserId());
-//            paymentCommandDto.setPaymentId(paymentModel.getPaymentId());
-//            paymentCommandDto.setCardId(creditCardModel.getCardId());
-//            paymentCommandPublisher.publishPaymentCommand(paymentCommandDto);
-//        } catch (Exception e) {
-//            logger.warn("Error sending payment command!");
-//        }
+
+        try {
+            var paymentCommandDto = new PaymentCommandDto();
+            paymentCommandDto.setUserId(userModel.getUserId());
+            paymentCommandDto.setPaymentId(paymentModel.getPaymentId());
+            paymentCommandDto.setCardId(creditCardModel.getCardId());
+            paymentCommandPublisher.publishPaymentCommand(paymentCommandDto);
+        } catch (Exception e) {
+            logger.warn("Error sending payment command!");
+        }
         return paymentModel;
     }
 
