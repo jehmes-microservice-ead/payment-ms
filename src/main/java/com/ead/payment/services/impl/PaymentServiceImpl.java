@@ -5,6 +5,7 @@ package com.ead.payment.services.impl;
 import com.ead.payment.dtos.PaymentCommandDto;
 import com.ead.payment.dtos.PaymentRequestDto;
 import com.ead.payment.enums.PaymentControl;
+import com.ead.payment.enums.PaymentStatus;
 import com.ead.payment.models.CreditCardModel;
 import com.ead.payment.models.PaymentModel;
 import com.ead.payment.models.UserModel;
@@ -16,6 +17,7 @@ import com.ead.payment.repositories.PaymentRepository;
 import com.ead.payment.repositories.UserRepository;
 import com.ead.payment.services.PaymentService;
 //import com.ead.payment.services.PaymentStripeService;
+import com.ead.payment.services.PaymentStripeService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.BeanUtils;
@@ -44,15 +46,16 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentCommandPublisher paymentCommandPublisher;
 
-    public PaymentServiceImpl(CreditCardRepository creditCardRepository, PaymentRepository paymentRepository, UserRepository userRepository, PaymentCommandPublisher paymentCommandPublisher) {
+   private final PaymentStripeService paymentStripeService;
+
+    public PaymentServiceImpl(CreditCardRepository creditCardRepository, PaymentRepository paymentRepository, UserRepository userRepository, PaymentCommandPublisher paymentCommandPublisher, PaymentStripeService paymentStripeService) {
         this.creditCardRepository = creditCardRepository;
         this.paymentRepository = paymentRepository;
         this.userRepository = userRepository;
         this.paymentCommandPublisher = paymentCommandPublisher;
+        this.paymentStripeService = paymentStripeService;
     }
 
-//    @Autowired
-//    PaymentStripeService paymentStripeService;
 //
 //    @Autowired
 //    PaymentEventPublisher paymentEventPublisher;
@@ -106,33 +109,33 @@ public class PaymentServiceImpl implements PaymentService {
         return paymentRepository.findPaymentByUser(userId, paymentId);
     }
 
-//    @Transactional
-//    @Override
-//    public void makePayment(PaymentCommandDto paymentCommandDto) {
-//        var paymentModel = paymentRepository.findById(paymentCommandDto.getPaymentId()).get();
-//        var userModel = userRepository.findById(paymentCommandDto.getUserId()).get();
-//        var creditCardModel = creditCardRepository.findById(paymentCommandDto.getCardId()).get();
-//
-//        paymentModel = paymentStripeService.processStripePayment(paymentModel, creditCardModel);
-//        paymentRepository.save(paymentModel);
-//
-//        if(paymentModel.getPaymentControl().equals(PaymentControl.EFFECTED)){
-//            userModel.setPaymentStatus(PaymentStatus.PAYING);
-//            userModel.setLastPaymentDate(LocalDateTime.now(ZoneId.of("UTC")));
-//            userModel.setPaymentExpirationDate(LocalDateTime.now(ZoneId.of("UTC")).plusDays(30));
-//            if(userModel.getFirstPaymentDate() == null){
-//                userModel.setFirstPaymentDate(LocalDateTime.now(ZoneId.of("UTC")));
-//            }
-//        } else{
-//            userModel.setPaymentStatus(PaymentStatus.DEBTOR);
-//        }
-//        userRepository.save(userModel);
-//
+    @Transactional
+    @Override
+    public void makePayment(PaymentCommandDto paymentCommandDto) throws Exception {
+        var paymentModel = paymentRepository.findById(paymentCommandDto.getPaymentId()).orElseThrow(()->new Exception("Payment not found"));
+        var userModel = userRepository.findById(paymentCommandDto.getUserId()).orElseThrow(()->new Exception("User not found"));
+        var creditCardModel = creditCardRepository.findById(paymentCommandDto.getCardId()).orElseThrow(()->new Exception("Credit Card not found"));
+
+        paymentModel = paymentStripeService.processStripePayment(paymentModel, creditCardModel);
+        paymentRepository.save(paymentModel);
+
+        if(paymentModel.getPaymentControl().equals(PaymentControl.EFFECTED)){
+            userModel.setPaymentStatus(PaymentStatus.PAYING);
+            userModel.setLastPaymentDate(LocalDateTime.now(ZoneId.of("UTC")));
+            userModel.setPaymentExpirationDate(LocalDateTime.now(ZoneId.of("UTC")).plusDays(30));
+            if(userModel.getFirstPaymentDate() == null){
+                userModel.setFirstPaymentDate(LocalDateTime.now(ZoneId.of("UTC")));
+            }
+        } else{
+            userModel.setPaymentStatus(PaymentStatus.DEBTOR);
+        }
+        userRepository.save(userModel);
+
 //        if(paymentModel.getPaymentControl().equals(PaymentControl.EFFECTED) ||
 //                paymentModel.getPaymentControl().equals(PaymentControl.REFUSED)){
-//            paymentEventPublisher.publishPaymentEvent(paymentModel.convertToPaymentEventDto());
+////            paymentEventPublisher.publishPaymentEvent(paymentModel.convertToPaymentEventDto());
 //        } else if(paymentModel.getPaymentControl().equals(PaymentControl.ERROR)) {
 //            //retry process and limits retry
 //        }
-//    }
+    }
 }
